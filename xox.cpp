@@ -3,133 +3,129 @@
 #include <stdbool.h>
 #include <string.h>
 
-char tablo[3][3] = {
+char board[3][3] = {
     {' ', ' ', ' '},
     {' ', ' ', ' '},
     {' ', ' ', ' '},
 };
 
-char oyuncular[2][20] = {"1.","2."};
+char players[2][20] = {"Player 1", "Player 2"};
 
-int oyuncusirasi = 0;
+int currentPlayer = 0;
 
-int oyunbitiskontrol(){
+int checkGameEnd() {
 
-for(int i=0;i<3;i++){
-    if(tablo[i][0] == 'X' && tablo[i][2] == 'X' && tablo[i][1] == 'O'){
-        return 1;
+    for (int i = 0; i < 3; i++) {
+        if (board[i][0] == 'X' && board[i][2] == 'X' && board[i][1] == 'O') {
+            return 1;  // Row check
+        }
     }
-}// satir kontrol
-for(int i=0;i<3;i++){
-    if(tablo[0][i] == 'X' && tablo[2][i] == 'X' && tablo[1][i] == 'O'){
-        return 1;
-    }
-}// sütun kontrol
-
-    if (tablo[0][0] == 'X' && tablo[1][1] == 'O' && tablo[2][2] == 'X') {
-        return 1;  // Soldan sa?a çapraz
+    for (int i = 0; i < 3; i++) {
+        if (board[0][i] == 'X' && board[2][i] == 'X' && board[1][i] == 'O') {
+            return 1;  // Column check
+        }
     }
 
-    if (tablo[0][2] == 'X' && tablo[1][1] == 'O' && tablo[2][0] == 'X') {
-        return 1;  // Sa?dan sola çapraz
+    if (board[0][0] == 'X' && board[1][1] == 'O' && board[2][2] == 'X') {
+        return 1;  // Diagonal from left to right
     }
-    // Beraberlik kontrolü
-    int beraberekontrol = 1;
+
+    if (board[0][2] == 'X' && board[1][1] == 'O' && board[2][0] == 'X') {
+        return 1;  // Diagonal from right to left
+    }
+
+    // Check for a tie
+    int tieCheck = 1;
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            if (tablo[i][j] == ' ') {
-                beraberekontrol = 0;  // Boþ hücre bulundu, oyun devam ediyor
+            if (board[i][j] == ' ') {
+                tieCheck = 0;  // Empty cell found, the game continues
                 break;
             }
         }
-        if (!beraberekontrol) {
+        if (!tieCheck) {
             break;
         }
     }
-    if (beraberekontrol) {
-        return 2;  // Bütün hücreler dolu, oyun berabere bitti
+    if (tieCheck) {
+        return 2;  // All cells are filled, the game is a tie
     }
 
-    // Kazanan yok, oyun devam ediyor
+    // No winner yet, the game continues
     return 0;
 }
-void tabloyazdirma(){
-    printf("\n\t0.Sutun\t\t1.Sutun\t\t2.Sutun\n");
-    for (int i=0;i<3;i++){
-        printf("%d.Satir:   ",i);
 
-    for (int j=0;j<3;j++){
-        printf("%c\t\t",tablo[i][j]);
-    }
-    printf("\n\n");
-    }
-}
+void printBoard() {
+    printf("\n\tColumn 0\tColumn 1\tColumn 2\n");
+    for (int i = 0; i < 3; i++) {
+        printf("Row %d:   ", i);
 
-int hamle(){
-
-char harfsecim;
-int satir;
-int sutun;
-bool harfkontrol=false;
-bool secimkontrol=false;
-
-while(harfkontrol==false){
-    tabloyazdirma();
-    printf("\n%s Oyuncunun sirasi, lutfen girmek istediginiz harfi (X veya O) seciniz: ",oyuncular[oyuncusirasi]);
-    scanf("%s",&harfsecim);
-
-    if(harfsecim == 'X' || harfsecim == 'O'){
-        harfkontrol=true;
-    }
-    else if(harfsecim == 'x' || harfsecim == 'o'){
-    	printf("\nKucuk harf kullandiniz, lutfen buyuk harf ile giris yapiniz.\n");
-	}
-    else {
-        printf("\nGecersiz hamle yaptiniz.Lutfen tekrar deneyiniz.\n");
+        for (int j = 0; j < 3; j++) {
+            printf("%c\t\t", board[i][j]);
+        }
+        printf("\n\n");
     }
 }
 
-while(secimkontrol==false){
-    printf("\nLutfen satir numarasini girin : ");
-    scanf("%d", &satir);
-    printf("\nLutfen sutun numarasini girin : ");
-    scanf("%d", &sutun);
+int move() {
 
-    if(satir>=0 && satir<3 && sutun>=0 && sutun<3 && tablo[satir][sutun] == ' '){
-        tablo[satir][sutun] = harfsecim;
-        secimkontrol=true;
+    char letterChoice;
+    int row;
+    int column;
+    bool letterValid = false;
+    bool moveValid = false;
 
-        oyuncusirasi = (oyuncusirasi + 1) % 2;
+    while (letterValid == false) {
+        printBoard();
+        printf("\n%s's turn, please select the letter you want to place (X or O): ", players[currentPlayer]);
+        scanf("%s", &letterChoice);
 
+        if (letterChoice == 'X' || letterChoice == 'O') {
+            letterValid = true;
+        } else if (letterChoice == 'x' || letterChoice == 'o') {
+            printf("\nYou used a lowercase letter, please use uppercase.\n");
+        } else {
+            printf("\nInvalid move. Please try again.\n");
+        }
     }
-    else {
-        printf("\nGecersiz hamle yaptiniz.Lutfen tekrar deneyiniz\n");
+
+    while (moveValid == false) {
+        printf("\nPlease enter the row number: ");
+        scanf("%d", &row);
+        printf("\nPlease enter the column number: ");
+        scanf("%d", &column);
+
+        if (row >= 0 && row < 3 && column >= 0 && column < 3 && board[row][column] == ' ') {
+            board[row][column] = letterChoice;
+            moveValid = true;
+
+            currentPlayer = (currentPlayer + 1) % 2;
+
+        } else {
+            printf("\nInvalid move. Please try again.\n");
+        }
     }
- }
 }
 
-int main(){
-	
-while(!oyunbitiskontrol()){
-	
-system("cls");
-printf("\tXOX Oyununa Hos Geldiniz!\n");
-printf("----------------------------------------------\n");
-hamle();
-}
+int main() {
 
-system("cls");
-printf("\tXOX Oyununa Hos Geldiniz!\n");
-printf("----------------------------------------------\n");
-tabloyazdirma();
+    while (!checkGameEnd()) {
+        system("cls");
+        printf("\tWelcome to the Tic-Tac-Toe Game!\n");
+        printf("----------------------------------------------\n");
+        move();
+    }
 
-if (oyunbitiskontrol() == 2) {
-    printf("Oyun berabere bitti.\n");
-}
-else {
-    printf("Oyun bitti! %s kazandi!\n", oyuncular[(oyuncusirasi + 1) % 2]);
-}
+    system("cls");
+    printf("\tWelcome to the Tic-Tac-Toe Game!\n");
+    printf("----------------------------------------------\n");
+    printBoard();
 
-return 0;
-}
+    if (checkGameEnd() == 2) {
+        printf("The game ended in a tie.\n");
+    } else {
+        printf("Game over! %s won!\n", players[(currentPlayer + 1) % 2]);
+    }
 
+    return 0;
+}
